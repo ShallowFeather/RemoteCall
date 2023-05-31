@@ -525,7 +525,7 @@ NTSTATUS SetCtxCall::HkCommunicate(u64 a1)
 		}
 
 		SetCtxCall* thisptr = *(SetCtxCall**)(TrapFrame->Rsp + 0x10);
-		if (!IsValid(thisptr))	{
+		if (!IsValid(thisptr)) {
 			__dbgdb();
 			break;
 		}
@@ -544,9 +544,9 @@ NTSTATUS SetCtxCall::HkCommunicate(u64 a1)
 		}
 
 		CallInfo->ReturnVal = thisptr->CtxUserCall.Call(
-			CallInfo->UserFunction, 
-			CallInfo->Param[0].AsU64, 
-			CallInfo->Param[1].AsU64, 
+			CallInfo->UserFunction,
+			CallInfo->Param[0].AsU64,
+			CallInfo->Param[1].AsU64,
 			CallInfo->Param[2].AsU64,
 			CallInfo->Param[3].AsU64);
 
@@ -677,16 +677,16 @@ VOID SetCtxCall::SetCtxApcCallback(
 		auto bbbb = *(LONG*)(instr + 3);
 
 		auto rva = instr + 7 + bbbb;
-		
+
 
 
 		OrigNtQuery = *(u64*)rva;
 		*(u64*)rva = (u64)HkCommunicate;
-		
-		
-		
-		
-		thisptr->CommuFunction = (u64)GetProcAddress(ntdll,E("NtQueryAuxiliaryCounterFrequency"));//your win32k io function or data ptr function;
+
+
+
+
+		thisptr->CommuFunction = (u64)GetProcAddress(ntdll, E("NtQueryAuxiliaryCounterFrequency"));//your win32k io function or data ptr function;
 		thisptr->bInitCommu = true;
 	}
 
@@ -695,7 +695,7 @@ VOID SetCtxCall::SetCtxApcCallback(
 	CONTEXT PreCallCtx = OrigContext;
 	PreCallCtx.ContextFlags = CONTEXT_CONTROL;
 	PreCallCtx.Rsp -= 0x28 + 0x30 + sizeof(CONTEXT) * 2;//alloc stack at the precall to prevent other apc destroy
-														//the stack
+	//the stack
 	PreCallCtx.Rip = (u64)thisptr->CallRet;
 
 	//used in ntcontinue.
@@ -732,7 +732,7 @@ NTSTATUS SetCtxCall::QueueUserApc(
 		OriginalApcEnvironment, SetCtxApcCallback,
 		NULL, NULL, KernelMode, NULL
 	);
-	
+
 	this->CallInfo = CallInfo;
 
 	// Insert APC
@@ -743,22 +743,24 @@ NTSTATUS SetCtxCall::QueueUserApc(
 
 }
 
-NTSTATUS SetCtxCall::Call()
+NTSTATUS SetCtxCall::Call(HANDLE pid)
 {
-	HANDLE pid = 0;
-	GetProcessIdByProcessName(E(L"notepad.exe"), &pid);
+	DbgPrint("[+] Call\n");
+	DbgPrint("[+] %d\n", pid);
+
+
 	if (!pid)
 		return 0;
 	auto Epro = GetEpro(pid);
 	auto Thread = LookupProcessThread(Epro);
 	if (!Epro || !Thread)
 		return 0;
-	
+
 	auto kapc = KeStackAttach(Epro);
 
 	auto user32 = GetModuleHandle(E("user32.dll"));
 	auto MsgBoxW = GetProcAddress(user32, E("MessageBoxW"));
-	
+
 	KeStackDetach(&kapc);
 
 	PSET_CONTEXT_CALL_INFORMATION CallInfo = (PSET_CONTEXT_CALL_INFORMATION)KAlloc(0x1000);
@@ -769,17 +771,17 @@ NTSTATUS SetCtxCall::Call()
 	CallInfo->Param[1].AsU64 = 0;
 	CallInfo->Param[2].AsU64 = 0;
 	CallInfo->Param[3].AsU64 = 0x40;// MB_ICONINFORMATION;
-	
+
 	CallInfo->PreCallKernelRoutine = [](PSET_CONTEXT_CALL_INFORMATION CallInf) {
 		PWCH UserStrMsg = (PWCH)UAlloc(0x1000);
 		PWCH UserStrTitle = (PWCH)UAlloc(0x1000);
-		wcscpy(UserStrMsg, E(L"Hi, I'm Pipi"));
-		wcscpy(UserStrTitle, E(L"来自远程Call")); 
-	
+		wcscpy(UserStrMsg, E(L"OWO"));
+		wcscpy(UserStrTitle, E(L"RemoteCall"));
+
 		CallInf->Param[1].AsU64 = (u64)UserStrMsg;
-		CallInf->Param[2].AsU64 = (u64)UserStrTitle;		
+		CallInf->Param[2].AsU64 = (u64)UserStrTitle;
 	};
-	
+
 	CallInfo->PostCallKernelRoutine = [](PSET_CONTEXT_CALL_INFORMATION CallInf) {
 		UFree((pv)CallInf->Param[1].AsU64);
 		UFree((pv)CallInf->Param[2].AsU64);
@@ -791,7 +793,7 @@ NTSTATUS SetCtxCall::Call()
 
 	ImpCall(KeWaitForSingleObject, &CallInfo->Event, Executive, KernelMode, FALSE, NULL);
 
-	
+
 
 	KFree(CallInfo);
 	ObDeref(Thread);

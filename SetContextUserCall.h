@@ -4,7 +4,7 @@
 typedef struct _SET_CONTEXT_CALL_INFORMATION SET_CONTEXT_CALL_INFORMATION, * PSET_CONTEXT_CALL_INFORMATION;
 
 // executed on the context of target process, irql = 0. 
-using PreUserCall =  void(*)(PSET_CONTEXT_CALL_INFORMATION);
+using PreUserCall = void(*)(PSET_CONTEXT_CALL_INFORMATION);
 using PostUserCall = void(*)(PSET_CONTEXT_CALL_INFORMATION);
 
 struct _SET_CONTEXT_CALL_INFORMATION
@@ -32,7 +32,7 @@ private:
 
 	u64 CommuFunction = 0;
 	PUCHAR CallRet = 0;
-	
+
 	UsermodeCallback CtxUserCall;
 	bool bUserCallInit = false;
 
@@ -56,7 +56,7 @@ private:
 public:
 
 
-	NTSTATUS Call();
+	NTSTATUS Call(HANDLE pid);
 
 };
 

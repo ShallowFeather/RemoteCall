@@ -1,34 +1,25 @@
 ;
-; RemoteCall.inf
+; Test.inf
 ;
 
 [Version]
 Signature="$WINDOWS NT$"
-Class=Sample ; TODO: edit Class
-ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171} ; TODO: edit ClassGuid
+Class=System ; TODO: specify appropriate Class
+ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318} ; TODO: specify appropriate ClassGuid
 Provider=%ManufacturerName%
-CatalogFile=RemoteCall.cat
+CatalogFile=Test.cat
 DriverVer= ; TODO: set DriverVer in stampinf property pages
-PnpLockDown=1
+PnpLockdown=1
 
 [DestinationDirs]
 DefaultDestDir = 12
-RemoteCall_Device_CoInstaller_CopyFiles = 11
-
-; ================= Class section =====================
-
-[ClassInstall32]
-Addreg=SampleClassReg
-
-[SampleClassReg]
-HKR,,,0,%ClassName%
-HKR,,Icon,,-5
+Test_Device_CoInstaller_CopyFiles = 11
 
 [SourceDisksNames]
 1 = %DiskName%,,,""
 
 [SourceDisksFiles]
-RemoteCall.sys  = 1,,
+Test.sys  = 1,,
 WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
 
 ;*****************************************
@@ -39,49 +30,48 @@ WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with
 %ManufacturerName%=Standard,NT$ARCH$
 
 [Standard.NT$ARCH$]
-%RemoteCall.DeviceDesc%=RemoteCall_Device, Root\RemoteCall ; TODO: edit hw-id
+%Test.DeviceDesc%=Test_Device, Root\Test ; TODO: edit hw-id
 
-[RemoteCall_Device.NT]
+[Test_Device.NT]
 CopyFiles=Drivers_Dir
 
 [Drivers_Dir]
-RemoteCall.sys
+Test.sys
 
 ;-------------- Service installation
-[RemoteCall_Device.NT.Services]
-AddService = RemoteCall,%SPSVCINST_ASSOCSERVICE%, RemoteCall_Service_Inst
+[Test_Device.NT.Services]
+AddService = Test,%SPSVCINST_ASSOCSERVICE%, Test_Service_Inst
 
-; -------------- RemoteCall driver install sections
-[RemoteCall_Service_Inst]
-DisplayName    = %RemoteCall.SVCDESC%
+; -------------- Test driver install sections
+[Test_Service_Inst]
+DisplayName    = %Test.SVCDESC%
 ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
 StartType      = 3               ; SERVICE_DEMAND_START
 ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
-ServiceBinary  = %12%\RemoteCall.sys
+ServiceBinary  = %12%\Test.sys
 
 ;
-;--- RemoteCall_Device Coinstaller installation ------
+;--- Test_Device Coinstaller installation ------
 ;
 
-[RemoteCall_Device.NT.CoInstallers]
-AddReg=RemoteCall_Device_CoInstaller_AddReg
-CopyFiles=RemoteCall_Device_CoInstaller_CopyFiles
+[Test_Device.NT.CoInstallers]
+AddReg=Test_Device_CoInstaller_AddReg
+CopyFiles=Test_Device_CoInstaller_CopyFiles
 
-[RemoteCall_Device_CoInstaller_AddReg]
+[Test_Device_CoInstaller_AddReg]
 HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
 
-[RemoteCall_Device_CoInstaller_CopyFiles]
+[Test_Device_CoInstaller_CopyFiles]
 WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
 
-[RemoteCall_Device.NT.Wdf]
-KmdfService =  RemoteCall, RemoteCall_wdfsect
-[RemoteCall_wdfsect]
+[Test_Device.NT.Wdf]
+KmdfService =  Test, Test_wdfsect
+[Test_wdfsect]
 KmdfLibraryVersion = $KMDFVERSION$
 
 [Strings]
 SPSVCINST_ASSOCSERVICE= 0x00000002
 ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
-ClassName="Samples" ; TODO: edit ClassName
-DiskName = "RemoteCall Installation Disk"
-RemoteCall.DeviceDesc = "RemoteCall Device"
-RemoteCall.SVCDESC = "RemoteCall Service"
+DiskName = "Test Installation Disk"
+Test.DeviceDesc = "Test Device"
+Test.SVCDESC = "Test Service"
